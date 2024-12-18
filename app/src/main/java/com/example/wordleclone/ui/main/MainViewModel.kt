@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+val ALLOWED_CHARS = Regex("^[A-Z]?$")
+
 data class MainUiState(
     val status: Word = Word.Loading
 )

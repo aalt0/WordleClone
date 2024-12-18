@@ -3,6 +3,9 @@ package com.example.wordleclone
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.ui.Modifier
 import com.example.wordleclone.ui.main.MainScreen
 import com.example.wordleclone.ui.main.MainViewModel
 import com.example.wordleclone.ui.theme.WordleCloneTheme
@@ -15,7 +18,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-            WordleCloneTheme { MainScreen(uiState.value) }
+            WordleCloneTheme {
+                Box(Modifier.safeDrawingPadding()) {
+                    MainScreen(uiState.value)
+                }
+            }
         }
     }
 }
