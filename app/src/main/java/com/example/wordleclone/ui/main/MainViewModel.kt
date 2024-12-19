@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.wordleclone.domain.repo.WordListRepo
 import com.example.wordleclone.ui.keyboard.KeyboardKey
-import com.example.wordleclone.ui.main.ErrorType.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,13 +14,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class MainUiState(
-    val status: GameState = GameState.Loading,
-    val rows: List<GameRow> = initialRows()
+    val status: GameState,
+    val rows: List<GameRow>
 )
 
 class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(MainUiState())
+    private val _uiState = MutableStateFlow(
+        MainUiState(
+            status = GameState.Loading,
+            rows = initialRows()
+        )
+    )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     private var _word: String = ""
@@ -35,29 +39,28 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
                         _uiState.update { it.copy(status = GameState.Running) }
                     }
                     .onFailure { throwable ->
-                        _uiState.update { it.copy(status = GameState.Error(ERROR_UNKNOWN)) }
+                        _uiState.update { it.copy(status = GameState.Error(ErrorType.ERROR_UNKNOWN)) }
                     }
             }
         }
     }
 
     fun onKeyPressed(key: KeyboardKey) {
-        // sanity checks
-        when (val status = _uiState.value.status) {
+        val status = _uiState.value.status
+        if (status is GameState.Error && status.error == ErrorType.ERROR_UNKNOWN) {
+            // dunno what to do yet. other errors are recoverable
+            return
+        }
+
+        when (status) {
             is GameState.Error,
-            is GameState.Lost,
-            is GameState.Won,
-            GameState.Loading -> {
-                Log.d("--- ", "game state: $status: key presses make no sense")
-                return
-            }
             is GameState.Running -> {
                 val rows = _uiState.value.rows
                 val activeRow = rows.firstOrNull { it.rowState == RowState.ACTIVE }
                 // sanity check
                 if (activeRow == null) {
                     Log.d("--- ", "no active row")
-                    _uiState.update { it.copy(status = GameState.Error(ERROR_UNKNOWN)) }
+                    _uiState.update { it.copy(status = GameState.Error(ErrorType.ERROR_UNKNOWN)) }
                     return
                 }
 
@@ -66,6 +69,12 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
                     KeyboardKey.ENTER -> handleEnter(activeRow)
                     else -> handleNewChar(key.name, activeRow)
                 }
+            }
+            is GameState.Lost,
+            is GameState.Won,
+            GameState.Loading -> {
+                Log.d("--- ", "game state: $status: key presses make no sense")
+                return
             }
         }
     }
@@ -104,15 +113,14 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
 
     private fun handleEnter(activeRow: GameRow) {
         Log.d("--- ", "handleEnter")
-        val entries = activeRow.entries
 
         // not a valid guess
-        if (entries.any { it.char.isEmpty() }) {
-            _uiState.update { it.copy(status = GameState.Error(ERROR_NOT_5_LETTER_WORD)) }
+        if (activeRow.entries.any { it.char.isEmpty() }) {
+            _uiState.update { it.copy(status = GameState.Error(ErrorType.ERROR_NOT_5_LETTER_WORD)) }
             return
         }
 
-        val guessedWord = activeRow.entries.map { it.char }.joinToString { "" }
+        val guessedWord = activeRow.entries.map { it.char }.joinToString(separator = "")
 
         // words match, user won the game
         if (guessedWord.equals(_word, ignoreCase = true)) {
@@ -120,7 +128,7 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
             val updatedRow = activeRow.copy(entries = newEntries)
             val newRows = _uiState.value.rows.toMutableList()
             newRows[activeRow.rowNumber] = updatedRow
-            _uiState.update { it.copy(status = GameState.Won) }
+            _uiState.update { it.copy(status = GameState.Won, rows = newRows) }
             return
         }
 
@@ -131,10 +139,9 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
 
         // invalid guess
         if (!wordListRepo.isWordInWordList(guessedWord)) {
-            _uiState.update { it.copy(status = GameState.Error(ERROR_WORD_NOT_IN_WORDLIST)) }
+            _uiState.update { it.copy(status = GameState.Error(ErrorType.ERROR_WORD_NOT_IN_WORDLIST)) }
             return
         }
-
         // check for partial matches
         val previousEntries = activeRow.entries
             .mapIndexed { index, guessedChar ->
@@ -152,7 +159,11 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
         val newRows = _uiState.value.rows.toMutableList()
         newRows[previousRow.rowNumber] = previousRow
         newRows[nextActiveRow.rowNumber] = nextActiveRow
-        _uiState.update { it.copy(status = GameState.Running) }
+        _uiState.update { it.copy(status = GameState.Running, rows = newRows) }
+    }
+
+    private fun updateUiState(newState: GameState, newRows: List<GameRow>) {
+        _uiState.update { it.copy(status = newState, rows = newRows) }
     }
 }
 
@@ -161,6 +172,7 @@ sealed class GameState {
     data object Running : GameState()
     data object Lost : GameState()
     data object Won : GameState()
+    // should separate the user errors and system errors
     data class Error(val error: ErrorType) : GameState()
 }
 
