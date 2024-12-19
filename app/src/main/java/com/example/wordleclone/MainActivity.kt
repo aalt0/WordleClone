@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
             val uiState = viewModel.uiState.collectAsStateWithLifecycle()
             WordleCloneTheme {
                 Box(Modifier.safeDrawingPadding()) {
-                    MainScreen(uiState.value)
+                    MainScreen(uiState.value, onKeyPressed = { viewModel.onKeyPressed(it) })
                 }
             }
         }

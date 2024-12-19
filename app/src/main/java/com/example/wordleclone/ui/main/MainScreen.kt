@@ -49,11 +49,12 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.example.wordleclone.ui.keyboard.Keyboard
+import com.example.wordleclone.ui.keyboard.KeyboardKey
 import com.example.wordleclone.ui.theme.WordleCloneTheme
 import java.util.Locale
 
 @Composable
-fun MainScreen(uiState: MainUiState) {
+fun MainScreen(uiState: MainUiState, onKeyPressed: (KeyboardKey) -> Unit) {
     Surface(
         modifier = Modifier.padding(12.dp),
         color = MaterialTheme.colorScheme.background
@@ -72,7 +73,7 @@ fun MainScreen(uiState: MainUiState) {
             SingleRow("", false)
             SingleRow("", false)
             Spacer(Modifier.height(10.dp))
-            Keyboard(onKeyPressed = {})
+            Keyboard(onKeyPressed)
         }
     }
 }
@@ -208,7 +209,7 @@ annotation class OrientationPreviews
 @Composable
 private fun MainScreenPreview() {
     WordleCloneTheme {
-        MainScreen(uiState = testMainUiState)
+        MainScreen(uiState = testMainUiState, onKeyPressed = {})
     }
 }
 

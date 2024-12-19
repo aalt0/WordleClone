@@ -1,5 +1,6 @@
 package com.example.wordleclone.ui.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.wordleclone.domain.repo.WordleCloneRepo
@@ -45,7 +46,7 @@ class MainViewModel(
     }
 
     fun onKeyPressed(key: KeyboardKey) {
-        TODO("Not yet implemented")
+        Log.d("--------- onKeyPressed: ", key.name)
     }
 
 }

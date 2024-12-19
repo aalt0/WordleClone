@@ -1,6 +1,7 @@
 package com.example.wordleclone.ui.keyboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -56,7 +57,9 @@ fun KeyboardRow(
             for (key in keys) {
                 val multiChar = key.name.length > 1
                 Box(
-                    modifier = buttonModifier.applyWhen(multiChar, block = { weight(1f) }),
+                    modifier = buttonModifier
+                        .applyWhen(multiChar, block = { weight(1f) })
+                        .clickable { onKeyPressed.invoke(key) },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
