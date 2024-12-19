@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,8 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.toUpperCase
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,9 +34,14 @@ import androidx.compose.ui.unit.sp
 import com.example.wordleclone.ui.keyboard.Keyboard
 import com.example.wordleclone.ui.keyboard.KeyboardKey
 import com.example.wordleclone.ui.theme.WordleCloneTheme
+import java.util.Locale
 
 @Composable
-fun MainScreen(uiState: MainUiState, onKeyPressed: (KeyboardKey) -> Unit) {
+fun MainScreen(
+    uiState: MainUiState,
+    onKeyPressed: (KeyboardKey) -> Unit,
+    onResetClicked: () -> Unit
+) {
     Surface(
         modifier = Modifier.padding(12.dp),
         color = MaterialTheme.colorScheme.background
@@ -44,7 +54,12 @@ fun MainScreen(uiState: MainUiState, onKeyPressed: (KeyboardKey) -> Unit) {
                     ErrorType.ERROR_NOT_5_LETTER_WORD -> "Not a valid guess"
                 }
                 is GameState.Won -> "Woohoo, you win!"
-                is GameState.Lost -> "No more guesses, bummer :("
+                is GameState.Lost -> buildAnnotatedString {
+                    append("No more guesses. The word was ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(status.word)
+                    }
+                }.toString()
                 is GameState.Loading -> "Loading ..."
                 else -> " " // else the game is running, return single space to use the Text() as a spacer
             }
@@ -57,6 +72,10 @@ fun MainScreen(uiState: MainUiState, onKeyPressed: (KeyboardKey) -> Unit) {
             uiState.rows.forEach { row -> SingleRow(row) }
             Spacer(Modifier.height(10.dp))
             Keyboard(onKeyPressed)
+            Spacer(Modifier.height(20.dp))
+            ElevatedButton(onClick = onResetClicked) {
+                Text("Reset")
+            }
         }
     }
 }
@@ -109,7 +128,7 @@ annotation class OrientationPreviews
 @Composable
 private fun MainScreenPreview() {
     WordleCloneTheme {
-        MainScreen(uiState = testMainUiState1, onKeyPressed = {})
+        MainScreen(uiState = testMainUiState1, onKeyPressed = {}, onResetClicked = {})
     }
 }
 
