@@ -145,7 +145,7 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
             return
         }
 
-        val guessedWord = activeRow.entries.map { it.char }.joinToString(separator = "")
+        val guessedWord = activeRow.entries.joinToString(separator = "") { it.char }
 
         // words match, user won the game
         if (guessedWord.equals(_word, ignoreCase = true)) {
@@ -157,17 +157,18 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
             return
         }
 
+        // invalid guess
+        if (!wordListRepo.isWordInWordList(guessedWord)) {
+            _uiState.update { it.copy(status = GameState.Error(ErrorType.ERROR_WORD_NOT_IN_WORDLIST)) }
+            return
+        }
+
         // no more guesses left
         if (activeRow.rowNumber == 5) {
             _uiState.update { it.copy(status = GameState.Lost(_word)) }
             return
         }
 
-        // invalid guess
-        if (!wordListRepo.isWordInWordList(guessedWord)) {
-            _uiState.update { it.copy(status = GameState.Error(ErrorType.ERROR_WORD_NOT_IN_WORDLIST)) }
-            return
-        }
         // check for partial matches
         val previousEntries = activeRow.entries
             .mapIndexed { index, guessedChar ->
