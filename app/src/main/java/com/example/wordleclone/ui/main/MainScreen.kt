@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.wordleclone.ui.keyboard.Keyboard
@@ -37,23 +36,27 @@ fun MainScreen(uiState: MainUiState, onKeyPressed: (KeyboardKey) -> Unit) {
         modifier = Modifier.padding(12.dp),
         color = MaterialTheme.colorScheme.background
     ) {
-        when (val status = uiState.status) {
-            is GameState.Error -> {
-                status.error
-                Text("error horror")
-            }
-            is GameState.Loading -> {
-                Text("Loading ...")
-            }
-            is GameState.Running -> {
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    uiState.rows.forEach { row -> SingleRow(row) }
-                    Spacer(Modifier.height(10.dp))
-                    Keyboard(onKeyPressed)
+        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            val message = when (val status = uiState.status) {
+                is GameState.Error -> when (status.error) {
+                    ErrorType.ERROR_UNKNOWN -> "error horror"
+                    ErrorType.ERROR_WORD_NOT_IN_WORDLIST -> "Word not in word list"
+                    ErrorType.ERROR_NOT_5_LETTER_WORD -> "Not a valid guess"
                 }
+                is GameState.Won -> "Woohoo, you win!"
+                is GameState.Lost -> "No more guesses, bummer :("
+                is GameState.Loading -> "Loading ..."
+                else -> " " // else the game is running, return single space to use the Text() as a spacer
             }
-            is GameState.Lost -> TODO()
-            is GameState.Won -> TODO()
+
+            Text(
+                text = message,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
+
+            uiState.rows.forEach { row -> SingleRow(row) }
+            Spacer(Modifier.height(10.dp))
+            Keyboard(onKeyPressed)
         }
     }
 }
@@ -106,54 +109,61 @@ annotation class OrientationPreviews
 @Composable
 private fun MainScreenPreview() {
     WordleCloneTheme {
-        MainScreen(uiState = testMainUiState, onKeyPressed = {})
+        MainScreen(uiState = testMainUiState1, onKeyPressed = {})
     }
 }
 
-val testMainUiState = MainUiState(
-    status = GameState.Running,
-    rows = listOf(
-        GameRow(
-            rowNumber = 0,
-            rowState = RowState.GUESSED,
-            entries = listOf(
-                Character("T", CharState.MATCH_IN_POSITION),
-                Character("R", CharState.MATCH_IN_POSITION),
-                Character("U", CharState.NO_MATCH),
-                Character("M", CharState.NO_MATCH),
-                Character("P", CharState.NO_MATCH),
-            ),
+private val dummyRows = listOf(
+    GameRow(
+        rowNumber = 0,
+        rowState = RowState.GUESSED,
+        entries = listOf(
+            Character("T", CharState.MATCH_IN_POSITION),
+            Character("R", CharState.MATCH_IN_POSITION),
+            Character("U", CharState.NO_MATCH),
+            Character("M", CharState.NO_MATCH),
+            Character("P", CharState.NO_MATCH),
         ),
-        GameRow(
-            rowNumber = 1,
-            rowState = RowState.GUESSED,
-            entries = listOf(
-                Character("T", CharState.MATCH_IN_POSITION),
-                Character("R", CharState.MATCH_IN_POSITION),
-                Character("A", CharState.MATCH_IN_POSITION),
-                Character("C", CharState.NO_MATCH),
-                Character("E", CharState.MATCH_IN_POSITION),
-            )
-        ),
-        GameRow(
-            rowNumber = 2,
-            rowState = RowState.MATCH,
-            entries = listOf(
-                Character("T", CharState.MATCH_IN_POSITION),
-                Character("R", CharState.MATCH_IN_POSITION),
-                Character("A", CharState.MATCH_IN_POSITION),
-                Character("D", CharState.MATCH_IN_POSITION),
-                Character("E", CharState.MATCH_IN_POSITION),
-            )
-        ),
-        GameRow(rowNumber = 3),
-        GameRow(rowNumber = 4),
-        GameRow(rowNumber = 5),
-    )
+    ),
+    GameRow(
+        rowNumber = 1,
+        rowState = RowState.GUESSED,
+        entries = listOf(
+            Character("T", CharState.MATCH_IN_POSITION),
+            Character("R", CharState.MATCH_IN_POSITION),
+            Character("A", CharState.MATCH_IN_POSITION),
+            Character("C", CharState.NO_MATCH),
+            Character("E", CharState.MATCH_IN_POSITION),
+        )
+    ),
+    GameRow(
+        rowNumber = 2,
+        rowState = RowState.MATCH,
+        entries = listOf(
+            Character("T", CharState.MATCH_IN_POSITION),
+            Character("R", CharState.MATCH_IN_POSITION),
+            Character("A", CharState.MATCH_IN_POSITION),
+            Character("D", CharState.MATCH_IN_POSITION),
+            Character("E", CharState.MATCH_IN_POSITION),
+        )
+    ),
+    GameRow(rowNumber = 3),
+    GameRow(rowNumber = 4),
+    GameRow(rowNumber = 5),
 )
 
-class MainUiStatePreviewProvider : PreviewParameterProvider<MainUiState> {
-    override val values= sequenceOf(
-        testMainUiState
-    )
-}
+val testMainUiState1 = MainUiState(
+    status = GameState.Error(ErrorType.ERROR_WORD_NOT_IN_WORDLIST),
+    rows = dummyRows
+)
+
+val testMainUiState2 = MainUiState(
+    status = GameState.Running,
+    rows = dummyRows
+)
+
+//class MainUiStatePreviewProvider : PreviewParameterProvider<MainUiState> {
+//    override val values= sequenceOf(
+//        testMainUiState
+//    )
+//}
