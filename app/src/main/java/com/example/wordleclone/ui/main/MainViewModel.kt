@@ -164,9 +164,9 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
         }
 
         // no more guesses left
+        var gameLost = false
         if (activeRow.rowNumber == 5) {
-            _uiState.update { it.copy(status = GameState.Lost(_word)) }
-            return
+            gameLost = true
         }
 
         // check for partial matches
@@ -181,6 +181,15 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
                 }
             }
         val previousRow = activeRow.copy(rowState = RowState.GUESSED, entries = previousEntries)
+
+        // bail out here if the game is lost but still show the proper state on the last row
+        if (gameLost) {
+            val newRows = _uiState.value.rows.toMutableList()
+            newRows[previousRow.rowNumber] = previousRow
+            _uiState.update { it.copy(status = GameState.Lost(_word), rows = newRows) }
+            return
+        }
+
         val nextActiveRow = _uiState.value.rows[activeRow.rowNumber + 1].copy(rowState = RowState.ACTIVE)
 
         val newRows = _uiState.value.rows.toMutableList()
