@@ -2,12 +2,12 @@ package com.example.wordleclone.ui.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import com.example.wordleclone.ui.keyboard.Keyboard
 import com.example.wordleclone.ui.theme.WordleCloneTheme
 import java.util.Locale
 
@@ -67,8 +68,11 @@ fun MainScreen(uiState: MainUiState) {
             SingleRow("TRACE", false)
             SingleRow("DWERS", true)
             SingleRow("", false)
-//            SingleRow("", false)
-//            SingleRow("", false)
+            SingleRow("", false)
+            SingleRow("", false)
+            SingleRow("", false)
+            Spacer(Modifier.height(10.dp))
+            Keyboard(onKeyPressed = {})
         }
     }
 }
@@ -161,7 +165,8 @@ fun CharInput(
         ) {
             BasicTextField(
                 modifier = if (focusable) {
-                    Modifier.focusProperties { canFocus = true }.focusRequester(focusRequester!!)
+                    Modifier.focusProperties { canFocus = true }
+                        .focusRequester(focusRequester!!)
                 } else {
                     Modifier.focusProperties { canFocus = false }
                 }
@@ -193,20 +198,6 @@ fun CharInput(
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @Preview(name = "Landscape Mode", showBackground = true, device = Devices.AUTOMOTIVE_1024p, widthDp = 640)
 @Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)

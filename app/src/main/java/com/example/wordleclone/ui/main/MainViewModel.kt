@@ -3,6 +3,7 @@ package com.example.wordleclone.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.wordleclone.domain.repo.WordleCloneRepo
+import com.example.wordleclone.ui.keyboard.KeyboardKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,4 +43,9 @@ class MainViewModel(
             }
         }
     }
+
+    fun onKeyPressed(key: KeyboardKey) {
+        TODO("Not yet implemented")
+    }
+
 }
