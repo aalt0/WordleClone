@@ -37,50 +37,63 @@ fun MainScreen(uiState: MainUiState, onKeyPressed: (KeyboardKey) -> Unit) {
         modifier = Modifier.padding(12.dp),
         color = MaterialTheme.colorScheme.background
     ) {
-        val word = when (uiState.status) {
-            Word.Loading -> "Loading ..."
-            is Word.Error -> uiState.status.error
-            is Word.Success -> uiState.status.word
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            SingleRow("TRACE")
-            SingleRow("DWER")
-            SingleRow("")
-            SingleRow("")
-            SingleRow("")
-            SingleRow("")
-            Spacer(Modifier.height(10.dp))
-            Keyboard(onKeyPressed)
+        when (val status = uiState.status) {
+            is GameState.Error -> {
+                status.error
+                Text("error horror")
+            }
+            is GameState.Loading -> {
+                Text("Loading ...")
+            }
+            is GameState.Running -> {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    uiState.rows.forEach { row -> SingleRow(row) }
+                    Spacer(Modifier.height(10.dp))
+                    Keyboard(onKeyPressed)
+                }
+            }
+            is GameState.Lost -> TODO()
+            is GameState.Won -> TODO()
         }
     }
 }
 
 @Composable
-fun SingleRow(word: String) {
+fun SingleRow(row: GameRow) {
     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        (0..4).forEach { index ->
-            val char = word.getOrNull(index)?.toString() ?: ""
-            Box(
-                modifier = Modifier.weight(1f)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .border(width = 5.dp, color = Color.DarkGray)
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Max)
-                    .aspectRatio(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = char,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.background(Transparent),
-                    minLines = 1,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-            }
+        val rowModifier = Modifier.weight(1f)
+        row.entries.forEach { char ->
+            SingleCharacter(char, rowModifier)
         }
+    }
+}
+
+@Composable
+fun SingleCharacter(char: Character, rowModifier: Modifier) {
+
+    val modifier = when (char.charState) {
+        CharState.NO_MATCH -> rowModifier.background(Color.LightGray)
+        CharState.MATCH_IN_WORD -> rowModifier.background(Color.Blue)
+        CharState.MATCH_IN_POSITION -> rowModifier.background(Color.Green)
+    }
+
+    Box(
+        modifier = modifier
+            .border(width = 5.dp, color = Color.DarkGray)
+            .fillMaxWidth()
+            .height(IntrinsicSize.Max)
+            .aspectRatio(1f),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = char.char,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.background(Transparent),
+            minLines = 1,
+            maxLines = 1,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -97,7 +110,48 @@ private fun MainScreenPreview() {
     }
 }
 
-val testMainUiState = MainUiState(status = Word.Success(word = "trace"))
+val testMainUiState = MainUiState(
+    status = GameState.Running,
+    rows = listOf(
+        GameRow(
+            rowNumber = 0,
+            rowState = RowState.GUESSED,
+            entries = listOf(
+                Character("T", CharState.MATCH_IN_POSITION),
+                Character("R", CharState.MATCH_IN_POSITION),
+                Character("U", CharState.NO_MATCH),
+                Character("M", CharState.NO_MATCH),
+                Character("P", CharState.NO_MATCH),
+            ),
+        ),
+        GameRow(
+            rowNumber = 1,
+            rowState = RowState.GUESSED,
+            entries = listOf(
+                Character("T", CharState.MATCH_IN_POSITION),
+                Character("R", CharState.MATCH_IN_POSITION),
+                Character("A", CharState.MATCH_IN_POSITION),
+                Character("C", CharState.NO_MATCH),
+                Character("E", CharState.MATCH_IN_POSITION),
+            )
+        ),
+        GameRow(
+            rowNumber = 2,
+            rowState = RowState.MATCH,
+            entries = listOf(
+                Character("T", CharState.MATCH_IN_POSITION),
+                Character("R", CharState.MATCH_IN_POSITION),
+                Character("A", CharState.MATCH_IN_POSITION),
+                Character("D", CharState.MATCH_IN_POSITION),
+                Character("E", CharState.MATCH_IN_POSITION),
+            )
+        ),
+        GameRow(rowNumber = 3),
+        GameRow(rowNumber = 4),
+        GameRow(rowNumber = 5),
+    )
+)
+
 class MainUiStatePreviewProvider : PreviewParameterProvider<MainUiState> {
     override val values= sequenceOf(
         testMainUiState

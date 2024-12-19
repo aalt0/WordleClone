@@ -1,7 +1,7 @@
 package com.example.wordleclone.di
 
-import com.example.wordleclone.data.repo.WordleCloneRepoImpl
-import com.example.wordleclone.domain.repo.WordleCloneRepo
+import com.example.wordleclone.data.repo.WordListRepoImpl
+import com.example.wordleclone.domain.repo.WordListRepo
 import com.example.wordleclone.ui.main.MainViewModel
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.bind
@@ -23,6 +23,6 @@ val appModule = module {
 //        get<Retrofit>().create(WordListService::class.java)
 //    }
 
-    singleOf(::WordleCloneRepoImpl) { bind<WordleCloneRepo>() }
+    singleOf(::WordListRepoImpl) { bind<WordListRepo>() }
     viewModelOf(::MainViewModel)
 }

@@ -1,5 +1,6 @@
 package com.example.wordleclone.domain.repo
 
-interface WordleCloneRepo {
+interface WordListRepo {
     suspend fun getWord(): Result<String>
+    fun isWordInWordList(word: String): Boolean
 }
