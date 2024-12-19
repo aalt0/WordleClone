@@ -45,6 +45,31 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
         }
     }
 
+    fun onResetClicked() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                wordListRepo.getWord()
+                    .onSuccess { result ->
+                        _word = result
+                        _uiState.update {
+                            it.copy(
+                                status = GameState.Running,
+                                rows = initialRows()
+                            )
+                        }
+                    }
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                status = GameState.Error(ErrorType.ERROR_UNKNOWN),
+                                rows = initialRows()
+                            )
+                        }
+                    }
+            }
+        }
+    }
+
     fun onKeyPressed(key: KeyboardKey) {
         val status = _uiState.value.status
         if (status is GameState.Error && status.error == ErrorType.ERROR_UNKNOWN) {
@@ -133,8 +158,9 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
         }
 
         // no more guesses left
-        if (activeRow.rowNumber == 6) {
-            _uiState.update { it.copy(status = GameState.Lost) }
+        if (activeRow.rowNumber == 5) {
+            _uiState.update { it.copy(status = GameState.Lost(_word)) }
+            return
         }
 
         // invalid guess
@@ -147,7 +173,7 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
             .mapIndexed { index, guessedChar ->
                 if (guessedChar.char.equals(_word[index].toString(), ignoreCase = true)) {
                     guessedChar.copy(charState = CharState.MATCH_IN_POSITION)
-                } else if (_word.contains(guessedChar.char)) {
+                } else if (_word.contains(guessedChar.char, ignoreCase = true)) {
                     guessedChar.copy(charState = CharState.MATCH_IN_WORD)
                 } else {
                     guessedChar.copy(charState = CharState.NO_MATCH)
@@ -161,17 +187,13 @@ class MainViewModel(private val wordListRepo: WordListRepo) : ViewModel() {
         newRows[nextActiveRow.rowNumber] = nextActiveRow
         _uiState.update { it.copy(status = GameState.Running, rows = newRows) }
     }
-
-    private fun updateUiState(newState: GameState, newRows: List<GameRow>) {
-        _uiState.update { it.copy(status = newState, rows = newRows) }
-    }
 }
 
 sealed class GameState {
     data object Loading : GameState()
     data object Running : GameState()
-    data object Lost : GameState()
     data object Won : GameState()
+    data class Lost(val word: String) : GameState()
     // should separate the user errors and system errors
     data class Error(val error: ErrorType) : GameState()
 }

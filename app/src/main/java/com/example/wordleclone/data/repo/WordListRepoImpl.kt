@@ -15,8 +15,7 @@ class WordListRepoImpl(private val context: Context) : WordListRepo {
                     .bufferedReader().use { it.readText() }
                     .split('\n')
             }
-//            Result.success(wordlist.random())
-            Result.success("trace")
+            Result.success(wordlist.random().uppercase())
         } catch (e: Exception) {
             Result.failure(e)
         }
