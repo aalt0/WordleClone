@@ -1,6 +1,7 @@
 package com.example.wordleclone.ui.main
 
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,9 @@ import androidx.compose.ui.unit.sp
 import com.example.wordleclone.ui.keyboard.Keyboard
 import com.example.wordleclone.ui.keyboard.KeyboardKey
 import com.example.wordleclone.ui.theme.WordleCloneTheme
+import com.example.wordleclone.ui.theme.matchInPositionColor
+import com.example.wordleclone.ui.theme.matchInWordColor
+import com.example.wordleclone.ui.theme.noMatchColor
 
 @Composable
 fun MainScreen(
@@ -41,12 +45,13 @@ fun MainScreen(
     onKeyPressed: (KeyboardKey) -> Unit,
     onResetClicked: () -> Unit
 ) {
-    // the ui only works in portrait mode
+    // The UI only works in portrait mode
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     Surface(
-        modifier = Modifier.padding(12.dp),
-        color = MaterialTheme.colorScheme.background
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.background)
+            .padding(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             val message = when (val status = uiState.status) {
@@ -65,6 +70,7 @@ fun MainScreen(
             Text(
                 text = message,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             uiState.rows.forEach { row -> SingleRow(row) }
@@ -91,15 +97,18 @@ fun SingleRow(row: GameRow) {
 @Composable
 fun SingleCharacter(char: Character, rowModifier: Modifier) {
 
-    val modifier = when (char.charState) {
-        CharState.NO_MATCH -> rowModifier.background(Color.LightGray)
-        CharState.MATCH_IN_WORD -> rowModifier.background(Color.Blue)
-        CharState.MATCH_IN_POSITION -> rowModifier.background(Color.Green)
+    val backgroundColor = when (char.charState) {
+        CharState.NO_MATCH -> MaterialTheme.noMatchColor
+        CharState.MATCH_IN_WORD -> MaterialTheme.matchInWordColor
+        CharState.MATCH_IN_POSITION -> MaterialTheme.matchInPositionColor
     }
 
+    val borderColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Box(
-        modifier = modifier
-            .border(width = 5.dp, color = Color.DarkGray)
+        modifier = rowModifier
+            .background(backgroundColor)
+            .border(width = 5.dp, color = borderColor)
             .fillMaxWidth()
             .height(IntrinsicSize.Max)
             .aspectRatio(1f),
@@ -109,7 +118,7 @@ fun SingleCharacter(char: Character, rowModifier: Modifier) {
             text = char.char,
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.background(Transparent),
+            color = MaterialTheme.colorScheme.onSurface,
             minLines = 1,
             maxLines = 1,
             textAlign = TextAlign.Center,
@@ -117,12 +126,13 @@ fun SingleCharacter(char: Character, rowModifier: Modifier) {
     }
 }
 
-@Preview(name = "Landscape Mode", showBackground = true, device = Devices.AUTOMOTIVE_1024p, widthDp = 640)
-@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
+//@Preview(name = "Landscape Mode", showBackground = true, device = Devices.AUTOMOTIVE_1024p, widthDp = 640)
+//@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
 annotation class OrientationPreviews
 
 @OrientationPreviews
-//@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
+@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
 @Composable
 private fun MainScreenPreview() {
     WordleCloneTheme {
@@ -135,7 +145,7 @@ private val dummyRows = listOf(
         rowNumber = 0,
         state = RowState.GUESSED,
         entries = listOf(
-            Character("T", CharState.MATCH_IN_POSITION),
+            Character("T", CharState.NO_MATCH),
             Character("R", CharState.MATCH_IN_POSITION),
             Character("U", CharState.NO_MATCH),
             Character("M", CharState.NO_MATCH),
@@ -146,22 +156,22 @@ private val dummyRows = listOf(
         rowNumber = 1,
         state = RowState.GUESSED,
         entries = listOf(
-            Character("T", CharState.MATCH_IN_POSITION),
-            Character("R", CharState.MATCH_IN_POSITION),
-            Character("A", CharState.MATCH_IN_POSITION),
-            Character("C", CharState.NO_MATCH),
-            Character("E", CharState.MATCH_IN_POSITION),
+            Character("B", CharState.MATCH_IN_POSITION),
+            Character("O", CharState.NO_MATCH),
+            Character("R", CharState.MATCH_IN_WORD),
+            Character("E", CharState.MATCH_IN_WORD),
+            Character("D", CharState.MATCH_IN_POSITION),
         )
     ),
     GameRow(
         rowNumber = 2,
         state = RowState.ACTIVE,
         entries = listOf(
-            Character("T", CharState.MATCH_IN_POSITION),
+            Character("B", CharState.MATCH_IN_POSITION),
             Character("R", CharState.MATCH_IN_POSITION),
+            Character("E", CharState.MATCH_IN_POSITION),
             Character("A", CharState.MATCH_IN_POSITION),
             Character("D", CharState.MATCH_IN_POSITION),
-            Character("E", CharState.MATCH_IN_POSITION),
         )
     ),
     GameRow(rowNumber = 3),
