@@ -25,7 +25,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,11 +33,10 @@ import androidx.compose.ui.unit.sp
 import com.example.wordleclone.ui.keyboard.Keyboard
 import com.example.wordleclone.ui.keyboard.KeyboardKey
 import com.example.wordleclone.ui.theme.WordleCloneTheme
-import java.util.Locale
 
 @Composable
 fun MainScreen(
-    uiState: MainUiState,
+    uiState: GameUiState,
     onKeyPressed: (KeyboardKey) -> Unit,
     onResetClicked: () -> Unit
 ) {
@@ -48,16 +46,12 @@ fun MainScreen(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             val message = when (val status = uiState.status) {
-                is GameState.Error -> when (status.error) {
-                    ErrorType.ERROR_UNKNOWN -> "error horror"
-                    ErrorType.ERROR_WORD_NOT_IN_WORDLIST -> "Word not in word list"
-                    ErrorType.ERROR_NOT_5_LETTER_WORD -> "Not a valid guess"
-                }
+                is GameState.Error -> status.message
                 is GameState.Won -> "Woohoo, you win!"
                 is GameState.Lost -> buildAnnotatedString {
                     append("No more guesses. The word was ")
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(status.word)
+                        append(status.correctWord)
                     }
                 }.toString()
                 is GameState.Loading -> "Loading ..."
@@ -123,30 +117,30 @@ fun SingleCharacter(char: Character, rowModifier: Modifier) {
 @Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
 annotation class OrientationPreviews
 
-//@OrientationPreviews
-@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
+@OrientationPreviews
+//@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
 @Composable
 private fun MainScreenPreview() {
     WordleCloneTheme {
-        MainScreen(uiState = testMainUiState1, onKeyPressed = {}, onResetClicked = {})
+        MainScreen(uiState = previewGameUiState, onKeyPressed = {}, onResetClicked = {})
     }
 }
 
 private val dummyRows = listOf(
     GameRow(
         rowNumber = 0,
-        rowState = RowState.GUESSED,
+        state = RowState.GUESSED,
         entries = listOf(
             Character("T", CharState.MATCH_IN_POSITION),
             Character("R", CharState.MATCH_IN_POSITION),
             Character("U", CharState.NO_MATCH),
             Character("M", CharState.NO_MATCH),
             Character("P", CharState.NO_MATCH),
-        ),
+        )
     ),
     GameRow(
         rowNumber = 1,
-        rowState = RowState.GUESSED,
+        state = RowState.GUESSED,
         entries = listOf(
             Character("T", CharState.MATCH_IN_POSITION),
             Character("R", CharState.MATCH_IN_POSITION),
@@ -157,7 +151,7 @@ private val dummyRows = listOf(
     ),
     GameRow(
         rowNumber = 2,
-        rowState = RowState.MATCH,
+        state = RowState.ACTIVE,
         entries = listOf(
             Character("T", CharState.MATCH_IN_POSITION),
             Character("R", CharState.MATCH_IN_POSITION),
@@ -168,21 +162,10 @@ private val dummyRows = listOf(
     ),
     GameRow(rowNumber = 3),
     GameRow(rowNumber = 4),
-    GameRow(rowNumber = 5),
+    GameRow(rowNumber = 5)
 )
 
-val testMainUiState1 = MainUiState(
-    status = GameState.Error(ErrorType.ERROR_WORD_NOT_IN_WORDLIST),
-    rows = dummyRows
-)
-
-val testMainUiState2 = MainUiState(
+val previewGameUiState = GameUiState(
     status = GameState.Running,
     rows = dummyRows
 )
-
-//class MainUiStatePreviewProvider : PreviewParameterProvider<MainUiState> {
-//    override val values= sequenceOf(
-//        testMainUiState
-//    )
-//}

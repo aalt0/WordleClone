@@ -4,7 +4,7 @@ import android.content.Context
 import com.example.wordleclone.domain.repo.WordListRepo
 
 class WordListRepoImpl(private val context: Context) : WordListRepo {
-    // we should keep track of used words
+    // we should keep track of the used words
 
     private var wordlist: Collection<String> = emptySet()
 
