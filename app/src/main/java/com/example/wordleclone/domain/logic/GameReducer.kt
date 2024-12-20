@@ -1,6 +1,5 @@
 package com.example.wordleclone.domain.logic
 
-import com.example.wordleclone.domain.model.GameRow
 import com.example.wordleclone.domain.model.GameState
 import com.example.wordleclone.domain.model.GameUiState
 import com.example.wordleclone.domain.model.RowState
@@ -13,10 +12,7 @@ fun reduce(
     isValidWord: (String) -> Boolean
 ): GameUiState {
     return when (action) {
-        is GameAction.ResetGame -> state.copy(
-            rows = List(6) { GameRow(it, if (it == 0) RowState.ACTIVE else RowState.INACTIVE) },
-            status = GameState.Loading
-        )
+        is GameAction.ResetGame -> GameUiState(hardMode = state.hardMode)
         is GameAction.KeyPress -> {
             val clearedState = state.copy(errorMessage = null)
             if (clearedState.status !is GameState.Running) return clearedState

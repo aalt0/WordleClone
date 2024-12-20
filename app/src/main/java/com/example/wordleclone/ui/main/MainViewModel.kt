@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel(private val wordRepo: WordListRepo) : ViewModel() {
-    private val _uiState = MutableStateFlow(GameUiState())
+    private val _uiState = MutableStateFlow(GameUiState(hardMode = true))
     val uiState: StateFlow<GameUiState> = _uiState
 
     private var targetWord: String = ""

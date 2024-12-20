@@ -9,27 +9,23 @@ internal fun submitRow(
     isValidWord: (String) -> Boolean
 ): GameUiState {
     val guess = currentRow.entries.joinToString("") { it.char }
-    val error = validateGuess(guess, isValidWord)
+    val error = validateGuess(guess = guess, isValidWord = isValidWord, state = state)
 
     if (error != null) return state.copy(errorMessage = error, status = GameState.Running)
 
     val evaluatedEntries = evaluateGuess(guess, targetWord)
     val updatedRows = replaceRow(state.rows, currentRow.copy(entries = evaluatedEntries, state = RowState.GUESSED))
     val updatedUsedChars = updateUsedCharacters(state.usedCharacters, evaluatedEntries)
-    val newState = state.copy(rows = updatedRows, usedCharacters = updatedUsedChars)
+
+    var newState = state.copy(rows = updatedRows, usedCharacters = updatedUsedChars)
+    if (newState.hardMode) {
+        newState = updateConstraints(newState, evaluatedEntries)
+    }
 
     return when {
         guess.equals(targetWord, ignoreCase = true) -> newState.copy(status = GameState.Won)
         currentRow.rowNumber == 5 -> newState.copy(status = GameState.Lost(targetWord))
         else -> activateNextRow(newState, currentRow.rowNumber + 1)
-    }
-}
-
-internal fun validateGuess(guess: String, isValidWord: (String) -> Boolean): String? {
-    return when {
-        guess.length != 5 -> "Word must have 5 letters"
-        !isValidWord(guess) -> "Not a valid word"
-        else -> null
     }
 }
 
@@ -47,7 +43,40 @@ internal fun modifyRowEntries(
     return state.copy(rows = replaceRow(state.rows, row.copy(entries = updatedEntries)))
 }
 
-internal fun removeLastChar(entries: List<Character>): List<Character> {
+internal fun replaceRow(rows: List<GameRow>, newRow: GameRow): List<GameRow> {
+    return rows.map { if (it.rowNumber == newRow.rowNumber) newRow else it }
+}
+
+private fun validateGuess(
+    guess: String,
+    isValidWord: (String) -> Boolean,
+    state: GameUiState
+): String? {
+    if (guess.length != 5) return "Word must have 5 letters"
+    if (!isValidWord(guess)) return "Not a valid word"
+
+    if (state.hardMode) {
+        // Check position locks
+        for ((pos, requiredChar) in state.positionLocks) {
+            if (guess[pos].uppercaseChar() != requiredChar) {
+                return "Must use '$requiredChar' in position ${pos + 1}"
+            }
+        }
+
+        // Check required chars count
+        val guessCharCounts = guess.uppercase().groupingBy { it }.eachCount()
+        for ((requiredChar, requiredCount) in state.requiredChars) {
+            val countInGuess = guessCharCounts[requiredChar] ?: 0
+            if (countInGuess < requiredCount) {
+                return "Your guess must include at least $requiredCount '$requiredChar'${if (requiredCount > 1) "s" else ""}"
+            }
+        }
+    }
+
+    return null
+}
+
+private fun removeLastChar(entries: List<Character>): List<Character> {
     val lastFilledIndex = entries.indexOfLast { it.char.isNotEmpty() }
     if (lastFilledIndex != -1) {
         return entries.toMutableList().apply { this[lastFilledIndex] = Character() }
@@ -55,7 +84,7 @@ internal fun removeLastChar(entries: List<Character>): List<Character> {
     return entries
 }
 
-internal fun addCharToEntries(entries: List<Character>, newChar: String): List<Character> {
+private fun addCharToEntries(entries: List<Character>, newChar: String): List<Character> {
     val firstEmptyIndex = entries.indexOfFirst { it.char.isEmpty() }
     return if (firstEmptyIndex != -1) {
         entries.toMutableList().apply { this[firstEmptyIndex] = Character(newChar) }
@@ -64,7 +93,7 @@ internal fun addCharToEntries(entries: List<Character>, newChar: String): List<C
     }
 }
 
-internal fun evaluateGuess(guess: String, targetWord: String): List<Character> {
+private fun evaluateGuess(guess: String, targetWord: String): List<Character> {
     val availability = targetWord.toMutableList()
     val result = MutableList(guess.length) { Character() }
 
@@ -90,19 +119,15 @@ internal fun evaluateGuess(guess: String, targetWord: String): List<Character> {
     return result
 }
 
-internal fun activateNextRow(state: GameUiState, nextRowNumber: Int): GameUiState {
+private fun activateNextRow(state: GameUiState, nextRowNumber: Int): GameUiState {
     return setRowState(state, nextRowNumber, RowState.ACTIVE)
 }
 
-internal fun setRowState(state: GameUiState, rowNumber: Int, newState: RowState): GameUiState {
+private fun setRowState(state: GameUiState, rowNumber: Int, newState: RowState): GameUiState {
     val updatedRows = state.rows.map {
         if (it.rowNumber == rowNumber) it.copy(state = newState) else it
     }
     return state.copy(rows = updatedRows)
-}
-
-internal fun replaceRow(rows: List<GameRow>, newRow: GameRow): List<GameRow> {
-    return rows.map { if (it.rowNumber == newRow.rowNumber) newRow else it }
 }
 
 private fun updateUsedCharacters(
@@ -127,4 +152,43 @@ private fun mergeStates(oldState: CharState?, newState: CharState): CharState {
         CharState.NO_MATCH to 1
     )
     return if (priority[newState]!! > priority[oldState]!!) newState else oldState
+}
+
+private fun updateConstraints(
+    state: GameUiState,
+    evaluatedEntries: List<Character>
+): GameUiState {
+    // Make mutable copies
+    val newPositionLocks = state.positionLocks.toMutableMap()
+    val newRequiredChars = state.requiredChars.toMutableMap()
+
+    val charCountInGuess = mutableMapOf<Char, Int>()
+    evaluatedEntries.forEachIndexed { index, entry ->
+        val ch = entry.char.firstOrNull()?.uppercaseChar() ?: return@forEachIndexed
+        when (entry.charState) {
+            CharState.MATCH_IN_POSITION -> {
+                newPositionLocks[index] = ch
+                // This also implies that character must appear at least once:
+                val oldCount = newRequiredChars[ch] ?: 0
+                newRequiredChars[ch] = maxOf(oldCount, 1)
+            }
+            CharState.MATCH_IN_WORD -> {
+                charCountInGuess[ch] = (charCountInGuess[ch] ?: 0) + 1
+            }
+            CharState.NO_MATCH -> { /* no new info if hard mode is on, except we know this letter not here unless previously known */ }
+        }
+    }
+
+    // For MATCH_IN_WORD chars, ensure we record at least one occurrence required.
+    for ((ch, count) in charCountInGuess) {
+        val oldCount = newRequiredChars[ch] ?: 0
+        // If we discovered that this char appears at least 'count' times, update requiredChars accordingly.
+        // For simplicity, assume each discovered MATCH_IN_WORD increases the minimum known occurrences.
+        newRequiredChars[ch] = maxOf(oldCount, count)
+    }
+
+    return state.copy(
+        positionLocks = newPositionLocks,
+        requiredChars = newRequiredChars
+    )
 }
