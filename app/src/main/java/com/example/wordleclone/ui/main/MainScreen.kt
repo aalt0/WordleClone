@@ -1,5 +1,6 @@
 package com.example.wordleclone.ui.main
 
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,9 @@ fun MainScreen(
     onKeyPressed: (KeyboardKey) -> Unit,
     onResetClicked: () -> Unit
 ) {
+    // the ui only works in portrait mode
+    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+
     Surface(
         modifier = Modifier.padding(12.dp),
         color = MaterialTheme.colorScheme.background
