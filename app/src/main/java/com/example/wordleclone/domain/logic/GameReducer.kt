@@ -24,9 +24,9 @@ fun reduce(
             val currentRow = clearedState.rows.firstOrNull { it.state == RowState.ACTIVE } ?: return clearedState
 
             when (action.key) {
-                KeyboardKey.ENTER -> submitRow(state, currentRow, targetWord, isValidWord)
-                KeyboardKey.DEL -> modifyRowEntries(state, currentRow, removeLast = true)
-                else -> modifyRowEntries(state, currentRow, addChar = action.key.name)
+                KeyboardKey.ENTER -> submitRow(clearedState, currentRow, targetWord, isValidWord)
+                KeyboardKey.DEL -> modifyRowEntries(clearedState, currentRow, removeLast = true)
+                else -> modifyRowEntries(clearedState, currentRow, addChar = action.key.name)
             }
         }
         is GameAction.WordFetched -> state.copy(

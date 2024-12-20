@@ -14,31 +14,39 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.wordleclone.domain.model.CharState
 import com.example.wordleclone.ui.theme.WordleCloneTheme
+import com.example.wordleclone.ui.theme.matchInPositionColor
+import com.example.wordleclone.ui.theme.matchInWordColor
+import com.example.wordleclone.ui.theme.noMatchColor
+import com.example.wordleclone.ui.theme.noMatchKeyboardColor
 import com.example.wordleclone.utli.applyWhen
 
 @Composable
-fun Keyboard(onKeyPressed: (KeyboardKey) -> Unit) {
+fun Keyboard(
+    onKeyPressed: (KeyboardKey) -> Unit,
+    usedCharacters: Map<String, CharState>
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        KeyboardRow(TOP_ROW, onKeyPressed)
+        KeyboardRow(TOP_ROW, onKeyPressed, usedCharacters)
         Spacer(Modifier.height(16.dp))
-        KeyboardRow(MID_ROW, onKeyPressed)
+        KeyboardRow(MID_ROW, onKeyPressed, usedCharacters)
         Spacer(Modifier.height(16.dp))
-        KeyboardRow(BOTTOM_ROW, onKeyPressed)
+        KeyboardRow(BOTTOM_ROW, onKeyPressed, usedCharacters)
     }
 }
 
 @Composable
 fun KeyboardRow(
     keys: List<KeyboardKey>,
-    onKeyPressed: (KeyboardKey) -> Unit
+    onKeyPressed: (KeyboardKey) -> Unit,
+    usedCharacters: Map<String, CharState>
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val itemWidth = maxWidth / 10
@@ -56,7 +64,8 @@ fun KeyboardRow(
                         .applyWhen(multiChar, block = { weight(1f) })
                         .width(itemWidth)
                         .padding(horizontal = 4.dp),
-                    onKeyPressed = onKeyPressed
+                    onKeyPressed = onKeyPressed,
+                    usedCharacters = usedCharacters
                 )
             }
         }
@@ -67,16 +76,20 @@ fun KeyboardRow(
 fun KeyboardButton(
     key: KeyboardKey,
     modifier: Modifier = Modifier,
-    onKeyPressed: (KeyboardKey) -> Unit
+    onKeyPressed: (KeyboardKey) -> Unit,
+    usedCharacters: Map<String, CharState>
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed = interactionSource.collectIsPressedAsState().value
 
-    // Dynamic background colors based on press state
-    val backgroundColor: Color = if (isPressed) {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp) // Darker gray for pressed state
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant // Default light gray
+    val keyCharState = usedCharacters[key.name]
+
+    val backgroundColor = when {
+        isPressed -> MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp)
+        keyCharState == CharState.MATCH_IN_POSITION -> MaterialTheme.matchInPositionColor
+        keyCharState == CharState.MATCH_IN_WORD -> MaterialTheme.matchInWordColor
+        keyCharState == CharState.NO_MATCH -> MaterialTheme.noMatchKeyboardColor
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     Box(
@@ -104,5 +117,14 @@ fun KeyboardButton(
 //@OrientationPreviews
 @Composable
 private fun KeyboardPreview() {
-    WordleCloneTheme { Keyboard(onKeyPressed = {}) }
+    WordleCloneTheme {
+        Keyboard(
+            onKeyPressed = {},
+            usedCharacters = mapOf(
+                "A" to CharState.NO_MATCH,
+                "D" to CharState.MATCH_IN_WORD,
+                "G" to CharState.MATCH_IN_POSITION,
+            )
+        )
+    }
 }

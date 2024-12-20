@@ -78,7 +78,7 @@ fun MainScreen(
 
             uiState.rows.forEach { row -> SingleRow(row) }
             Spacer(Modifier.height(10.dp))
-            Keyboard(onKeyPressed)
+            Keyboard(onKeyPressed, uiState.usedCharacters)
             Spacer(Modifier.height(20.dp))
             ElevatedButton(onClick = onResetClicked) {
                 Text("Reset")
@@ -135,7 +135,7 @@ annotation class OrientationPreviews
 
 @OrientationPreviews
 @Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
+//@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
 @Composable
 private fun MainScreenPreview() {
     WordleCloneTheme {
@@ -184,5 +184,10 @@ private val dummyRows = listOf(
 
 val previewGameUiState = GameUiState(
     status = GameState.Running,
-    rows = dummyRows
+    rows = dummyRows,
+    usedCharacters = mapOf(
+        "A" to CharState.NO_MATCH,
+        "D" to CharState.MATCH_IN_WORD,
+        "G" to CharState.MATCH_IN_POSITION,
+    )
 )
