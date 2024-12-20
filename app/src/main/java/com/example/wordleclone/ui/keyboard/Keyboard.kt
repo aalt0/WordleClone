@@ -24,7 +24,6 @@ import com.example.wordleclone.domain.model.CharState
 import com.example.wordleclone.ui.theme.WordleCloneTheme
 import com.example.wordleclone.ui.theme.matchInPositionColor
 import com.example.wordleclone.ui.theme.matchInWordColor
-import com.example.wordleclone.ui.theme.noMatchColor
 import com.example.wordleclone.ui.theme.noMatchKeyboardColor
 import com.example.wordleclone.utli.applyWhen
 
@@ -35,9 +34,9 @@ fun Keyboard(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         KeyboardRow(TOP_ROW, onKeyPressed, usedCharacters)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
         KeyboardRow(MID_ROW, onKeyPressed, usedCharacters)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(10.dp))
         KeyboardRow(BOTTOM_ROW, onKeyPressed, usedCharacters)
     }
 }
@@ -63,7 +62,7 @@ fun KeyboardRow(
                         .height(56.dp)
                         .applyWhen(multiChar, block = { weight(1f) })
                         .width(itemWidth)
-                        .padding(horizontal = 4.dp),
+                        .padding(horizontal = 3.dp),
                     onKeyPressed = onKeyPressed,
                     usedCharacters = usedCharacters
                 )

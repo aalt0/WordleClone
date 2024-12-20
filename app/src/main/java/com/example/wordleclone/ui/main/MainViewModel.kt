@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.wordleclone.domain.logic.GameAction
 import com.example.wordleclone.domain.logic.reduce
+import com.example.wordleclone.domain.model.CharState
 import com.example.wordleclone.domain.model.GameDomainState
 import com.example.wordleclone.domain.model.RowState
 import com.example.wordleclone.domain.model.ValidationError
@@ -19,17 +20,22 @@ data class GameUiState(
     val domainState: GameDomainState,
     val errorMessage: String? = null,
     val animatingRowIndex: Int? = null,
-    val invalidGuessRowIndex: Int? = null
+    val invalidGuessRowIndex: Int? = null,
+    val usedCharacters: Map<String, CharState> = emptyMap(),
+    // needed to delay showing the changes in the keyboard until animations are finished
+    val pendingUsedCharacters: Map<String, CharState> = emptyMap(),
 )
 
 class MainViewModel(private val wordRepo: WordListRepo) : ViewModel() {
-    private val _uiStateFlow = MutableStateFlow(GameUiState(GameDomainState()))
+    private val _uiStateFlow = MutableStateFlow(
+        GameUiState(GameDomainState(hardMode = true))
+    )
     val uiState: StateFlow<GameUiState> = _uiStateFlow.asStateFlow()
 
     private var targetWord: String = ""
 
     init {
-        dispatch(GameAction.ResetGame) // triggers loading state
+        dispatch(GameAction.ResetGame)
         fetchTargetWord()
     }
 
@@ -42,8 +48,14 @@ class MainViewModel(private val wordRepo: WordListRepo) : ViewModel() {
         dispatch(GameAction.KeyPress(key))
     }
 
+    // this is called for both row shaking and character flipping animations
     fun onAnimationEnded() {
-        _uiStateFlow.value = _uiStateFlow.value.copy(animatingRowIndex = null, invalidGuessRowIndex = null)
+        _uiStateFlow.value = _uiStateFlow.value.copy(
+            animatingRowIndex = null,
+            invalidGuessRowIndex = null,
+            usedCharacters = _uiStateFlow.value.pendingUsedCharacters,
+            pendingUsedCharacters = emptyMap()
+        )
     }
 
     private fun dispatch(action: GameAction) {
@@ -59,7 +71,6 @@ class MainViewModel(private val wordRepo: WordListRepo) : ViewModel() {
 
         val isSubmitting = action is GameAction.KeyPress && action.key == KeyboardKey.ENTER
         val isValidSubmit = newDomainState.validationError == null
-        val errorMessage = handleValidationError(newDomainState.validationError)
 
         val (animatingRowIndex, invalidGuessRowIndex) = when {
             isSubmitting && isValidSubmit -> currentRowIndex to null
@@ -67,11 +78,21 @@ class MainViewModel(private val wordRepo: WordListRepo) : ViewModel() {
             else -> null to null
         }
 
+        val errorMessage = handleValidationError(newDomainState.validationError)
+
+        val (usedCharacters, pendingUsedCharacters) = if (action == GameAction.ResetGame) {
+            emptyMap<String, CharState>() to emptyMap()
+        } else {
+            _uiStateFlow.value.usedCharacters to newDomainState.usedCharacters
+        }
+
         val newUiState = _uiStateFlow.value.copy(
             domainState = newDomainState,
             errorMessage = errorMessage,
             animatingRowIndex = animatingRowIndex,
-            invalidGuessRowIndex = invalidGuessRowIndex
+            invalidGuessRowIndex = invalidGuessRowIndex,
+            usedCharacters = usedCharacters,
+            pendingUsedCharacters = pendingUsedCharacters
         )
         _uiStateFlow.value = newUiState
     }

@@ -7,7 +7,7 @@ data class GameDomainState(
     val hardMode: Boolean = false,
     val validationError: ValidationError? = null,
     val positionLocks: Map<Int, Char> = emptyMap(), // position -> character that must be used
-    val requiredChars: Map<Char, Int> = emptyMap() // character -> minimum occurrences required
+    val requiredChars: Map<Char, Int> = emptyMap()  // character -> minimum occurrences required
 )
 
 private val defaultRowsState = List(6) { index ->
