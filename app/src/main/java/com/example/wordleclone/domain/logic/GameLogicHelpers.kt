@@ -3,15 +3,15 @@ package com.example.wordleclone.domain.logic
 import com.example.wordleclone.domain.model.*
 
 internal fun submitRow(
-    state: GameUiState,
+    state: GameDomainState,
     currentRow: GameRow,
     targetWord: String,
     isValidWord: (String) -> Boolean
-): GameUiState {
+): GameDomainState {
     val guess = currentRow.entries.joinToString("") { it.char }
-    val error = validateGuess(guess = guess, isValidWord = isValidWord, state = state)
+    val validationError = validateGuess(guess = guess, isValidWord = isValidWord, state = state)
 
-    if (error != null) return state.copy(errorMessage = error, status = GameState.Running)
+    if (validationError != null) return state.copy(validationError = validationError, gameState = GameState.Running)
 
     val evaluatedEntries = evaluateGuess(guess, targetWord)
     val updatedRows = replaceRow(state.rows, currentRow.copy(entries = evaluatedEntries, state = RowState.GUESSED))
@@ -23,18 +23,18 @@ internal fun submitRow(
     }
 
     return when {
-        guess.equals(targetWord, ignoreCase = true) -> newState.copy(status = GameState.Won)
-        currentRow.rowNumber == 5 -> newState.copy(status = GameState.Lost(targetWord))
+        guess.equals(targetWord, ignoreCase = true) -> newState.copy(gameState = GameState.Won)
+        currentRow.rowNumber == 5 -> newState.copy(gameState = GameState.Lost(targetWord))
         else -> activateNextRow(newState, currentRow.rowNumber + 1)
     }
 }
 
 internal fun modifyRowEntries(
-    state: GameUiState,
+    state: GameDomainState,
     row: GameRow,
     addChar: String = "",
     removeLast: Boolean = false
-): GameUiState {
+): GameDomainState {
     val updatedEntries = when {
         removeLast -> removeLastChar(row.entries)
         addChar.isNotEmpty() -> addCharToEntries(row.entries, addChar)
@@ -50,16 +50,16 @@ internal fun replaceRow(rows: List<GameRow>, newRow: GameRow): List<GameRow> {
 private fun validateGuess(
     guess: String,
     isValidWord: (String) -> Boolean,
-    state: GameUiState
-): String? {
-    if (guess.length != 5) return "Word must have 5 letters"
-    if (!isValidWord(guess)) return "Not a valid word"
+    state: GameDomainState
+): ValidationError? {
+    if (guess.length != 5) return ValidationError.WordWrongLength // "Word must have 5 letters"
+    if (!isValidWord(guess)) return ValidationError.WordNotInList //"Not a valid word"
 
     if (state.hardMode) {
         // Check position locks
         for ((pos, requiredChar) in state.positionLocks) {
             if (guess[pos].uppercaseChar() != requiredChar) {
-                return "Must use '$requiredChar' in position ${pos + 1}"
+                return ValidationError.MissingPositionChar(requiredChar, pos) //"Must use '$requiredChar' in position ${pos + 1}"
             }
         }
 
@@ -68,11 +68,11 @@ private fun validateGuess(
         for ((requiredChar, requiredCount) in state.requiredChars) {
             val countInGuess = guessCharCounts[requiredChar] ?: 0
             if (countInGuess < requiredCount) {
-                return "Your guess must include at least $requiredCount '$requiredChar'${if (requiredCount > 1) "s" else ""}"
+                // "Your guess must include at least $requiredCount '$requiredChar'${if (requiredCount > 1) "s" else ""}"
+                return ValidationError.MissingRequiredChar(requiredChar, requiredCount)
             }
         }
     }
-
     return null
 }
 
@@ -119,11 +119,11 @@ private fun evaluateGuess(guess: String, targetWord: String): List<Character> {
     return result
 }
 
-private fun activateNextRow(state: GameUiState, nextRowNumber: Int): GameUiState {
+private fun activateNextRow(state: GameDomainState, nextRowNumber: Int): GameDomainState {
     return setRowState(state, nextRowNumber, RowState.ACTIVE)
 }
 
-private fun setRowState(state: GameUiState, rowNumber: Int, newState: RowState): GameUiState {
+private fun setRowState(state: GameDomainState, rowNumber: Int, newState: RowState): GameDomainState {
     val updatedRows = state.rows.map {
         if (it.rowNumber == rowNumber) it.copy(state = newState) else it
     }
@@ -155,9 +155,9 @@ private fun mergeStates(oldState: CharState?, newState: CharState): CharState {
 }
 
 private fun updateConstraints(
-    state: GameUiState,
+    state: GameDomainState,
     evaluatedEntries: List<Character>
-): GameUiState {
+): GameDomainState {
     // Make mutable copies
     val newPositionLocks = state.positionLocks.toMutableMap()
     val newRequiredChars = state.requiredChars.toMutableMap()

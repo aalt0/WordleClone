@@ -22,9 +22,10 @@ class MainActivity : ComponentActivity() {
             WordleCloneTheme {
                 Box(Modifier.safeDrawingPadding()) {
                     MainScreen(
-                        uiState,
+                        uiState = uiState,
                         onKeyPressed = { viewModel.onKeyPress(it) },
-                        onResetClicked = { viewModel.onResetClicked() }
+                        onResetClicked = { viewModel.onResetClicked() },
+                        onAnimationEnded = { viewModel.onAnimationEnded() }
                     )
                 }
             }

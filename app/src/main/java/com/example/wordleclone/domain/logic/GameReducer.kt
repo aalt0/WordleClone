@@ -1,40 +1,36 @@
 package com.example.wordleclone.domain.logic
 
 import com.example.wordleclone.domain.model.GameState
-import com.example.wordleclone.domain.model.GameUiState
+import com.example.wordleclone.domain.model.GameDomainState
 import com.example.wordleclone.domain.model.RowState
 import com.example.wordleclone.ui.keyboard.KeyboardKey
 
 fun reduce(
-    state: GameUiState,
+    state: GameDomainState,
     action: GameAction,
     targetWord: String,
     isValidWord: (String) -> Boolean
-): GameUiState {
+): GameDomainState {
     return when (action) {
-        is GameAction.ResetGame -> GameUiState(hardMode = state.hardMode)
+        is GameAction.ResetGame -> GameDomainState(hardMode = state.hardMode)
+        is GameAction.WordFetched -> state.copy(gameState = GameState.Running)
+        is GameAction.FetchError -> state.copy(gameState = GameState.Loading)
         is GameAction.KeyPress -> {
-            val clearedState = state.copy(errorMessage = null)
-            if (clearedState.status !is GameState.Running) return clearedState
+            val clearedState = state.copy(validationError = null)
+            if (clearedState.gameState !is GameState.Running) {
+                return clearedState
+            }
 
-            val currentRow = clearedState.rows.firstOrNull { it.state == RowState.ACTIVE } ?: return clearedState
+            val currentRow = clearedState.rows.firstOrNull { it.state == RowState.ACTIVE }
+            if (currentRow == null) {
+                return clearedState
+            }
 
             when (action.key) {
                 KeyboardKey.ENTER -> submitRow(clearedState, currentRow, targetWord, isValidWord)
                 KeyboardKey.DEL -> modifyRowEntries(clearedState, currentRow, removeLast = true)
                 else -> modifyRowEntries(clearedState, currentRow, addChar = action.key.name)
             }
-        }
-        is GameAction.WordFetched -> state.copy(
-            status = GameState.Running
-        )
-        is GameAction.FetchError -> state.copy(
-            status = GameState.Loading,
-            errorMessage = action.message
-        )
-        GameAction.SubmitActiveRow -> {
-            val currentRow = state.rows.firstOrNull { it.state == RowState.ACTIVE } ?: return state
-            submitRow(state, currentRow, targetWord, isValidWord)
         }
     }
 }
