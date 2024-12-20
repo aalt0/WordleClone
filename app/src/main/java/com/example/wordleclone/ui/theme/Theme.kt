@@ -16,7 +16,7 @@ private val LightColorScheme = lightColorScheme(
     surface = Color(0xFFFFFFFF),
     onSurface = Color.Black,
     surfaceVariant = LightGray,
-    onSurfaceVariant = Color.DarkGray,
+    onSurfaceVariant = DarkGray,
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -30,7 +30,7 @@ private val DarkColorScheme = darkColorScheme(
     surface = Color(0xFF121212),
     onSurface = Color.White,
     surfaceVariant = DarkGray,
-    onSurfaceVariant = Color.LightGray,
+    onSurfaceVariant = LightGray,
 )
 
 object WordleColors {

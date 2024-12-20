@@ -2,23 +2,21 @@ package com.example.wordleclone.ui.keyboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,35 +42,61 @@ fun KeyboardRow(
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val itemWidth = maxWidth / 10
+
         Row(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
-            val buttonModifier = Modifier
-                .height(56.dp)
-                .width(itemWidth)
-                .padding(start = 4.dp, end = 4.dp)
-                .background(MaterialTheme.colorScheme.inversePrimary)
-
             for (key in keys) {
                 val multiChar = key.name.length > 1
-                Box(
-                    modifier = buttonModifier
+                KeyboardButton(
+                    key = key,
+                    modifier = Modifier
+                        .height(56.dp)
                         .applyWhen(multiChar, block = { weight(1f) })
-                        .clickable { onKeyPressed.invoke(key) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = key.name,
-                        maxLines = 1,
-                        minLines = 1,
-                        textAlign = TextAlign.Center,
-                        fontSize = if (multiChar) 12.sp else 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                        .width(itemWidth)
+                        .padding(horizontal = 4.dp),
+                    onKeyPressed = onKeyPressed
+                )
             }
         }
+    }
+}
+
+@Composable
+fun KeyboardButton(
+    key: KeyboardKey,
+    modifier: Modifier = Modifier,
+    onKeyPressed: (KeyboardKey) -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed = interactionSource.collectIsPressedAsState().value
+
+    // Dynamic background colors based on press state
+    val backgroundColor: Color = if (isPressed) {
+        MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp) // Darker gray for pressed state
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant // Default light gray
+    }
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp)) // Rounded corners for modern look
+            .background(backgroundColor)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null // Avoid default ripple, using manual styling
+            ) { onKeyPressed(key) },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = key.name,
+            style = TextStyle(
+                fontSize = if (key.name.length > 1) 12.sp else 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface // Text color adapts to theme
+            )
+        )
     }
 }
 
