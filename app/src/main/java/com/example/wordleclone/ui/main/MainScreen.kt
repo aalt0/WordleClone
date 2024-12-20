@@ -21,8 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +30,12 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.wordleclone.domain.model.Character
+import com.example.wordleclone.domain.model.CharState
+import com.example.wordleclone.domain.model.GameRow
+import com.example.wordleclone.domain.model.GameState
+import com.example.wordleclone.domain.model.GameUiState
+import com.example.wordleclone.domain.model.RowState
 import com.example.wordleclone.ui.keyboard.Keyboard
 import com.example.wordleclone.ui.keyboard.KeyboardKey
 import com.example.wordleclone.ui.theme.WordleCloneTheme
@@ -55,7 +59,6 @@ fun MainScreen(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             val message = when (val status = uiState.status) {
-                is GameState.Error -> status.message
                 is GameState.Won -> "Woohoo, you win!"
                 is GameState.Lost -> buildAnnotatedString {
                     append("No more guesses. The word was ")
@@ -64,7 +67,7 @@ fun MainScreen(
                     }
                 }.toString()
                 is GameState.Loading -> "Loading ..."
-                else -> " " // else the game is running, return single space to use the Text() as a spacer
+                is GameState.Running -> uiState.errorMessage ?: " "
             }
 
             Text(
