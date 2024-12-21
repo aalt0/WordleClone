@@ -146,11 +146,21 @@ class DomainLogicTest {
     }
 
     @Test
+    fun `missing word in word list validation`() {
+        val state = initialState()
+        val guess = listOf('F','O','O','B','A').map { Character(it.toString()) }
+        val currentRow = state.rows[0].copy(entries = guess)
+
+        val newState = submitRow(state, currentRow, targetWord, isValidWord)
+        assertTrue(newState.validationError is ValidationError.WordNotInList)
+    }
+
+    @Test
     fun `hard mode position lock validation`() {
         val state = initialState(hardMode = true).copy(
             positionLocks = mapOf(0 to 'C') // Must use 'C' at position 0
         )
-        val guess = listOf('R','R','A','N','E').map { Character(it.toString()) }
+        val guess = listOf('G','R','A','N','D').map { Character(it.toString()) }
         val currentRow = state.rows[0].copy(entries = guess)
 
         val newState = submitRow(state, currentRow, targetWord, isValidWord)
