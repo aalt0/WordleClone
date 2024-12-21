@@ -11,3 +11,4 @@ val DarkYellow = Color(0xFFB59F3B)  // Match in word (dark mode)
 val DarkGray = Color(0xFF2F2F2F)    // No match (dark mode)
 
 val MidGray = Color(0xFF8D8D8D)     // Keyboard no match (default)
+val DarkerGray = Color(0xFF505050)     // Keyboard no match (default)

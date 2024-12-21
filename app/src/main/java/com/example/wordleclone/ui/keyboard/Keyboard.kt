@@ -1,5 +1,6 @@
 package com.example.wordleclone.ui.keyboard
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,9 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.wordleclone.domain.model.CharState
 import com.example.wordleclone.ui.theme.WordleCloneTheme
+import com.example.wordleclone.ui.theme.keyboardButtonColor
+import com.example.wordleclone.ui.theme.keyboardButtonNoMatchColor
 import com.example.wordleclone.ui.theme.matchInPositionColor
 import com.example.wordleclone.ui.theme.matchInWordColor
-import com.example.wordleclone.ui.theme.noMatchKeyboardColor
+import com.example.wordleclone.ui.theme.noMatchColor
 import com.example.wordleclone.utli.applyWhen
 
 @Composable
@@ -87,8 +90,8 @@ fun KeyboardButton(
         isPressed -> MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp)
         keyCharState == CharState.MATCH_IN_POSITION -> MaterialTheme.matchInPositionColor
         keyCharState == CharState.MATCH_IN_WORD -> MaterialTheme.matchInWordColor
-        keyCharState == CharState.NO_MATCH -> MaterialTheme.noMatchKeyboardColor
-        else -> MaterialTheme.colorScheme.surfaceVariant
+        keyCharState == CharState.NO_MATCH -> MaterialTheme.keyboardButtonNoMatchColor
+        else -> MaterialTheme.keyboardButtonColor
     }
 
     Box(
@@ -112,8 +115,11 @@ fun KeyboardButton(
     }
 }
 
+@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
-//@OrientationPreviews
+annotation class OrientationPreviews
+//@Preview(name = "Portrait Mode", showBackground = true, device = Devices.PIXEL_XL)
+@OrientationPreviews
 @Composable
 private fun KeyboardPreview() {
     WordleCloneTheme {

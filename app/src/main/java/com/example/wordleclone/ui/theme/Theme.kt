@@ -42,7 +42,8 @@ object WordleColors {
     val matchInWordDark = DarkYellow
     val noMatchDark = DarkGray
 
-    val noMatchKeyboard = MidGray
+    val keyboardButton = MidGray
+    val keyboardButtonNoMatch = DarkerGray
 }
 
 // Add custom colors to MaterialTheme
@@ -58,10 +59,13 @@ val MaterialTheme.noMatchColor: Color
     @Composable
     get() = if (isSystemInDarkTheme()) WordleColors.noMatchDark else WordleColors.noMatchLight
 
-// inverted, otherwise the color would be the same as default key color
-val MaterialTheme.noMatchKeyboardColor: Color
+val MaterialTheme.keyboardButtonColor: Color
     @Composable
-    get() = WordleColors.noMatchKeyboard
+    get() = WordleColors.keyboardButton
+
+val MaterialTheme.keyboardButtonNoMatchColor: Color
+    @Composable
+    get() = WordleColors.keyboardButtonNoMatch
 
 @Composable
 fun WordleCloneTheme(
