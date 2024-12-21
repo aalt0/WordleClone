@@ -53,9 +53,9 @@ fun MainScreen(
 
     Surface(
         modifier = Modifier
+            .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
             .padding(8.dp)
-            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             TopBar(statusMessage, onResetClicked)
@@ -104,7 +104,6 @@ private fun GameBoard(
     rows.forEach { row ->
         val isAnimating = animatingRowIndex == row.rowNumber
         val shouldShake = invalidGuessRowIndex == row.rowNumber
-
         ShakingRow(
             row = row,
             shake = shouldShake,
@@ -160,9 +159,10 @@ private val dummyRows = listOf(
 
 val previewGameUiState = GameUiState(
     usedCharacters = mapOf(
-        "A" to CharState.NO_MATCH,
-        "D" to CharState.MATCH_IN_WORD,
-        "G" to CharState.MATCH_IN_POSITION,
+        "B" to CharState.MATCH_IN_POSITION,
+        "D" to CharState.MATCH_IN_POSITION,
+        "R" to CharState.MATCH_IN_WORD,
+        "E" to CharState.MATCH_IN_WORD,
     ),
     domainState = GameDomainState(
         gameState = GameState.Running,

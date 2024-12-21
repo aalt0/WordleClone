@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -41,7 +42,9 @@ fun ShakingRow(
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
-        modifier = Modifier.offset { IntOffset(x = offsetX.value.dp.value.toInt(), y = 0) }
+        modifier = Modifier
+            .padding(start = 10.dp, end = 10.dp)
+            .offset { IntOffset(x = offsetX.value.dp.value.toInt(), y = 0) }
     ) {
         val rowModifier = Modifier.weight(1f)
         row.entries.forEachIndexed { index, char ->
