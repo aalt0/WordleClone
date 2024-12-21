@@ -1,7 +1,7 @@
 package com.example.wordleclone.domain.logic
 
-import com.example.wordleclone.domain.model.GameState
 import com.example.wordleclone.domain.model.GameDomainState
+import com.example.wordleclone.domain.model.GameState
 import com.example.wordleclone.domain.model.RowState
 import com.example.wordleclone.ui.keyboard.KeyboardKey
 

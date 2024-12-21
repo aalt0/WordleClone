@@ -3,8 +3,8 @@ package com.example.wordleclone.di
 import com.example.wordleclone.data.repo.WordListRepoImpl
 import com.example.wordleclone.domain.repo.WordListRepo
 import com.example.wordleclone.ui.main.MainViewModel
-import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import retrofit2.Retrofit

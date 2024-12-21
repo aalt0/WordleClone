@@ -1,6 +1,12 @@
 package com.example.wordleclone.domain.logic
 
-import com.example.wordleclone.domain.model.*
+import com.example.wordleclone.domain.model.CharState
+import com.example.wordleclone.domain.model.Character
+import com.example.wordleclone.domain.model.GameDomainState
+import com.example.wordleclone.domain.model.GameRow
+import com.example.wordleclone.domain.model.GameState
+import com.example.wordleclone.domain.model.RowState
+import com.example.wordleclone.domain.model.ValidationError
 
 // --------------------------------------
 // Constants
