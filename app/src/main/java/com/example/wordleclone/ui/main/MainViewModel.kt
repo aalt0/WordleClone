@@ -115,7 +115,7 @@ class MainViewModel(private val wordRepo: WordListRepo) : ViewModel() {
             ValidationError.WordWrongLength ->
                 "Word must have 5 letters"
             ValidationError.WordNotInList ->
-                "Not a valid word"
+                "Not in word list"
             is ValidationError.MissingPositionChar ->
                 "Must use '${error.char}' in position ${error.position + 1}"
             is ValidationError.MissingRequiredChar ->

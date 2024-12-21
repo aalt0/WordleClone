@@ -12,7 +12,8 @@ class WordListRepoImpl(private val context: Context) : WordListRepo {
         return try {
             if (wordlist.isEmpty()) {
                 wordlist = context.assets.open("words.txt")
-                    .bufferedReader().use { it.readText() }
+                    .bufferedReader()
+                    .use { it.readText() }
                     .split('\n')
             }
             Result.success(wordlist.random().uppercase())

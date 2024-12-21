@@ -95,7 +95,6 @@ fun MainScreen(
                 is GameState.Running -> uiState.errorMessage ?: " "
             }
 
-            val columnModifier = Modifier.align(Alignment.CenterHorizontally)
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = message,
