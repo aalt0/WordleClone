@@ -52,7 +52,7 @@ internal fun submitRow(
     return when {
         guess.equals(targetWord, ignoreCase = true) -> updatedState.copy(gameState = GameState.Won)
         currentRow.rowNumber == (MAX_GUESSES - 1) -> updatedState.copy(gameState = GameState.Lost(targetWord))
-        else -> activateNextRow(updatedState, currentRow.rowNumber + 1)
+        else -> activateRow(updatedState, currentRow.rowNumber + 1)
     }
 }
 
@@ -145,13 +145,9 @@ private fun updateUsedCharacters(
     return newMap
 }
 
-private fun activateNextRow(state: GameDomainState, nextRowNumber: Int): GameDomainState {
-    return setRowState(state, nextRowNumber, RowState.ACTIVE)
-}
-
-private fun setRowState(state: GameDomainState, rowNumber: Int, newState: RowState): GameDomainState {
+private fun activateRow(state: GameDomainState, rowNumber: Int): GameDomainState {
     val updatedRows = state.rows.map {
-        if (it.rowNumber == rowNumber) it.copy(state = newState) else it
+        if (it.rowNumber == rowNumber) it.copy(state = RowState.ACTIVE) else it
     }
     return state.copy(rows = updatedRows)
 }
