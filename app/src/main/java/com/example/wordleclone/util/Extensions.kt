@@ -1,4 +1,4 @@
-package com.example.wordleclone.utli
+package com.example.wordleclone.util
 
 inline fun <R : Any> R.applyWhen(
     condition: Boolean,
