@@ -36,7 +36,7 @@ import com.example.wordleclone.ui.theme.keyboardButtonColor
 import com.example.wordleclone.ui.theme.keyboardButtonNoMatchColor
 import com.example.wordleclone.ui.theme.matchInPositionColor
 import com.example.wordleclone.ui.theme.matchInWordColor
-import com.example.wordleclone.utli.applyWhen
+import com.example.wordleclone.util.applyWhen
 
 @Composable
 fun Keyboard(
